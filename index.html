@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WTFGame_Jam</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimal-ui"
+    />
+    <link rel="stylesheet" href="Assets/style.css" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="mobile-web-app-capable" content="yes" />
+  </head>
+  <body>
+    <div id="unity-container">
+      <canvas id="unity-canvas"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="rotateDevicePopup" class="rotate-device-popup">
+        <div class="rotate-device-popup-content">
+            <p>Please rotate your device to landscape mode</p>
+        </div>
+    </div>
+    <script>
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/WebBuild.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/430412fae1b15e93f3e2545da5b8d868.data.unityweb",
+        frameworkUrl: buildUrl + "/95e7a3b2f71630107a4e1a06a7ecdaf4.js.unityweb",
+        codeUrl: buildUrl + "/08aa9f5a609336b4f8e66852ed5d1fd2.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "CubeHole",
+        productName: "WTFGame_Jam",
+        productVersion: "0.1",
+    };
+
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      loadingBar.style.display = "block";
+      var unityInstanceLoaded = false;
+      var unityLoader;
+      var landscape=false;
+      var CANVAS_WIDTH = "960px";
+    var CANVAS_HEIGHT = "600px";
+    console.log(CANVAS_WIDTH);
+    console.log(CANVAS_HEIGHT);
+
+    if (parseInt(CANVAS_WIDTH) > parseInt(CANVAS_HEIGHT)) {
+      console.log("landscape");
+      landscape=true;
+      //canvas.classList.toggle("landscape");
+    } else {
+      console.log("portrait");
+     // canvas.classList.toggle("landscape");
+      //canvas.classList.toggle("portrait");
+    }
+
+      unityLoader = () => {
+        if (!unityInstanceLoaded) {
+        }
+      };
+      config.matchWebGLToCanvasSize = true;
+
+      function showRotateDevicePopup() {
+    var popup = document.getElementById('rotateDevicePopup');
+    if (popup) {
+        popup.style.display = 'flex'; // or 'block' depending on your styling
+    }
+}
+
+// Function to hide the pop-up
+function hideRotateDevicePopup() {
+    var popup = document.getElementById('rotateDevicePopup');
+    if (popup) {
+        popup.style.display = 'none';
+    }
+}
+function requestLandscapeOrientation() {
+        var lock = "landscape";
+        console.log("Value of landscape is"+ landscape);
+        if (landscape==true) {
+
+          lock = "landscape";
+          console.log("lock type is landscape");
+        }
+        else
+        {
+          lock = "portrait";
+          console.log("lock type is portrait");
+        }
+        screen.orientation.lock(lock).then(response => {
+          console.log(response);
+        }).catch(e => {
+          console.log(e);
+        });
+      }
+      function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+function detectOrientation() {
+    var orientation = window.orientation;
+    
+    if ((orientation === 0 || orientation === 180)&&landscape) {
+      showRotateDevicePopup();
+        console.log("Portrait orientation");
+    } else if ((orientation === 90 || orientation === -90)&& landscape) {
+      hideRotateDevicePopup();
+        console.log("Landscape orientation");
+    }
+}
+
+      function setDimensions(w, h) {
+        var canvasWidth = w ? w : window.innerWidth;
+        var canvasHeight = h ? h : window.innerHeight;
+        var canvasAspectRatio = canvasWidth / canvasHeight;
+        if(landscape)
+        var gameAspectRatio = 16 / 9; // set the game aspect ratio here
+      else 
+      gameAspectRatio=9/16
+        if (canvasAspectRatio > gameAspectRatio) {
+          canvasWidth = canvasHeight * gameAspectRatio;
+        } else {
+          canvasHeight = canvasWidth / gameAspectRatio;
+        }
+
+        canvas.style.width = canvasWidth + "px";
+        canvas.style.height = canvasHeight + "px";
+      }
+
+      setDimensions();
+      detectOrientation();
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        
+        window.addEventListener('resize', function(event) {
+          setDimensions();
+});
+window.addEventListener('orientationchange', detectOrientation);
+
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+        })
+          .then((unityInstance) => {
+            loadingBar.style.display = "none";
+            window.unityInstance = unityInstance;
+            unityInstanceLoaded = true;
+            container.onclick = () => {
+                 // unityInstance.SetFullscreen(1);
+                  if (isMobileDevice())
+                  requestLandscapeOrientation();
+                };
+            setDimensions();
+          })
+          .catch((message) => {
+            console.log(message);
+          });
+      };
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>
